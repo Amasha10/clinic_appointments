@@ -11,8 +11,9 @@ Student Name: Wijesinghe K A A N
 Group Number: (individual assignment) - IT22349156
 
 03). Deployment Details
-Backend URL: TBD
-Frontend URL: React Native / Expo mobile application (no public frontend URL)
+Backend URL: https://clinicappointments-production.up.railway.app
+Backend Health Check: https://clinicappointments-production.up.railway.app/api/health (currently returns HTTP 502; redeploy after configuring Railway variables)
+Frontend URL: https://clinicappointments-mobile.vercel.app
 
 =================================
 FILE STRUCTURE
@@ -68,9 +69,15 @@ LOCAL SETUP & INSTALLATION
 	- Navigate to the mobile directory: cd mobile
 	- Install dependencies: npm install
 	- Copy .env.example to .env
-	- Set EXPO_PUBLIC_API_URL to the API URL, e.g. http://localhost:5000/api for web
+	- Set EXPO_PUBLIC_API_URL=https://clinicappointments-production.up.railway.app/api in mobile/.env
+	- Set the same EXPO_PUBLIC_API_URL in Vercel Project Settings > Environment Variables, then redeploy
 	- Start in a browser: npm run web
 	- Start Expo Go: npm start, then scan the QR code
+
+3. HOSTING CONFIGURATION
+	- Railway Root Directory: /backend; set MONGODB_URI, JWT_SECRET, NODE_ENV=production, and CLIENT_ORIGIN=https://clinicappointments-mobile.vercel.app
+	- Vercel Root Directory: /mobile; set EXPO_PUBLIC_API_URL=https://clinicappointments-production.up.railway.app/api
+	- Redeploy the Railway service and verify /api/health returns HTTP 200 with the database connected before testing frontend API features
 
 =================================
 APPLICATION SUMMARY
