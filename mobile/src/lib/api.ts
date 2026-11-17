@@ -15,10 +15,7 @@ export interface Doctor {
   specialty: string;
   email?: string;
   phone?: string;
-<<<<<<< HEAD
   secondaryPhone?: string;
-=======
->>>>>>> 518ea84be0523a42dd0bf1bace8c2501f4a2a458
   description?: string;
   imageUrl?: string;
 }

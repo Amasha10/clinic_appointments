@@ -16,10 +16,7 @@ export default function DoctorFormScreen() {
   const [specialty, setSpecialty] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-<<<<<<< HEAD
   const [secondaryPhone, setSecondaryPhone] = useState('');
-=======
->>>>>>> 518ea84be0523a42dd0bf1bace8c2501f4a2a458
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [error, setError] = useState('');
@@ -35,10 +32,7 @@ export default function DoctorFormScreen() {
         setSpecialty(result.specialty);
         setEmail(result.email || '');
         setPhone(result.phone || '');
-<<<<<<< HEAD
         setSecondaryPhone(result.secondaryPhone || '');
-=======
->>>>>>> 518ea84be0523a42dd0bf1bace8c2501f4a2a458
         setDescription(result.description || '');
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : 'Could not load doctor.'))
@@ -59,10 +53,7 @@ export default function DoctorFormScreen() {
     body.append('specialty', specialty.trim());
     body.append('email', email.trim());
     body.append('phone', phone.trim());
-<<<<<<< HEAD
     body.append('secondaryPhone', secondaryPhone.trim());
-=======
->>>>>>> 518ea84be0523a42dd0bf1bace8c2501f4a2a458
     body.append('description', description.trim());
     if (image) {
       (body as any).append('image', { uri: image.uri, name: image.fileName || 'doctor-photo.jpg', type: image.mimeType || 'image/jpeg' });
@@ -87,10 +78,7 @@ export default function DoctorFormScreen() {
       <Field label="Specialty" value={specialty} onChangeText={setSpecialty} placeholder="Cardiology" />
       <Field label="Email" value={email} onChangeText={setEmail} placeholder="doctor@clinic.com" keyboardType="email-address" autoCapitalize="none" />
       <Field label="Phone" value={phone} onChangeText={setPhone} placeholder="Contact number" keyboardType="phone-pad" />
-<<<<<<< HEAD
       <Field label="Secondary Phone" value={secondaryPhone} onChangeText={setSecondaryPhone} placeholder="Secondary contact number" keyboardType="phone-pad" />
-=======
->>>>>>> 518ea84be0523a42dd0bf1bace8c2501f4a2a458
       <Field label="About" value={description} onChangeText={setDescription} placeholder="Short professional description" multiline />
       <Pressable onPress={() => void chooseImage()} style={styles.photoButton}>
         {image ? <Image source={{ uri: image.uri }} style={styles.preview} contentFit="cover" /> : doctor?.imageUrl ? <Image source={{ uri: imageUrl(doctor.imageUrl) }} style={styles.preview} contentFit="cover" /> : null}
