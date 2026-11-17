@@ -23,7 +23,7 @@ exports.create = async (request, response) => {
 };
 
 exports.update = async (request, response) => {
-  const fields = ['name', 'specialty', 'email', 'phone', 'description'];
+  const fields = ['name', 'specialty', 'email', 'phone', 'secondaryPhone', 'description'];
   const changes = Object.fromEntries(fields.filter((field) => request.body[field] !== undefined).map((field) => [field, request.body[field]]));
   if (request.file) changes.imageUrl = `/uploads/${request.file.filename}`;
 
