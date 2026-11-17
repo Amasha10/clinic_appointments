@@ -1,5 +1,11 @@
 require('dotenv').config();
 
+// Some local routers cannot resolve MongoDB Atlas SRV records (querySrv ECONNREFUSED).
+// Set DNS_SERVERS (e.g. 8.8.8.8,1.1.1.1) to resolve through public DNS instead.
+if (process.env.DNS_SERVERS) {
+  require('node:dns').setServers(process.env.DNS_SERVERS.split(',').map((server) => server.trim()).filter(Boolean));
+}
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
