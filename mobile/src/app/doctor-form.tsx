@@ -7,6 +7,12 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { Action, Field, Heading, Notice, Page, Spinner } from '@/components/clinic-ui';
 import { apiRequest, imageUrl, type Doctor } from '@/lib/api';
 import { colors } from '@/lib/theme';
+import {
+  compactErrors, hasErrors, limits, sanitizePhoneInput, validateEmail, validateImage, validateName, validateOptionalText,
+  validatePhone, validateRequiredText, type FieldErrors,
+} from '@/lib/validation';
+
+type DoctorField = 'name' | 'specialty' | 'email' | 'phone' | 'description' | 'image';
 
 export default function DoctorFormScreen() {
   const { doctorId } = useLocalSearchParams<{ doctorId?: string }>();
@@ -18,6 +24,7 @@ export default function DoctorFormScreen() {
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors<DoctorField>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(editing);
@@ -37,19 +44,40 @@ export default function DoctorFormScreen() {
       .finally(() => setLoading(false));
   }, [doctorId]);
 
+  function change(field: DoctorField, setter: (value: string) => void) {
+    return (value: string) => {
+      setter(value);
+      if (fieldErrors[field]) setFieldErrors((current) => ({ ...current, [field]: '' }));
+    };
+  }
+
   async function chooseImage() {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, quality: 0.85 });
-    if (!result.canceled) setImage(result.assets[0]);
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    const imageError = validateImage(asset);
+    setFieldErrors((current) => ({ ...current, image: imageError }));
+    if (!imageError) setImage(asset);
   }
 
   async function submit() {
     setError('');
-    if (!name.trim() || !specialty.trim()) return setError('Doctor name and specialty are required.');
+    const errors = compactErrors<DoctorField>({
+      name: validateName(name, 'Doctor name', limits.doctorName),
+      specialty: validateRequiredText(specialty, 'Specialty', limits.specialty, 2),
+      email: validateEmail(email, { required: false }),
+      phone: validatePhone(phone),
+      description: validateOptionalText(description, 'About', limits.description),
+      image: validateImage(image),
+    });
+    setFieldErrors(errors);
+    if (hasErrors(errors)) return setError('Please fix the highlighted fields.');
+
     setBusy(true);
     const body = new FormData();
     body.append('name', name.trim());
     body.append('specialty', specialty.trim());
-    body.append('email', email.trim());
+    body.append('email', email.trim().toLowerCase());
     body.append('phone', phone.trim());
     body.append('description', description.trim());
     if (image) {
@@ -71,16 +99,16 @@ export default function DoctorFormScreen() {
     <Page>
       <Heading title={editing ? 'Update doctor' : 'Add a doctor'} detail="Add the details patients need before booking." />
       {error ? <Notice>{error}</Notice> : null}
-      <Field label="Full name" value={name} onChangeText={setName} placeholder="Dr. Maya Perera" />
-      <Field label="Specialty" value={specialty} onChangeText={setSpecialty} placeholder="Cardiology" />
-      <Field label="Email" value={email} onChangeText={setEmail} placeholder="doctor@clinic.com" keyboardType="email-address" autoCapitalize="none" />
-      <Field label="Phone" value={phone} onChangeText={setPhone} placeholder="Contact number" keyboardType="phone-pad" />
-      <Field label="About" value={description} onChangeText={setDescription} placeholder="Short professional description" multiline />
+      <Field label="Full name" value={name} onChangeText={change('name', setName)} error={fieldErrors.name} placeholder="Dr. Maya Perera" maxLength={limits.doctorName} />
+      <Field label="Specialty" value={specialty} onChangeText={change('specialty', setSpecialty)} error={fieldErrors.specialty} placeholder="Cardiology" maxLength={limits.specialty} />
+      <Field label="Email (optional)" value={email} onChangeText={change('email', setEmail)} error={fieldErrors.email} placeholder="doctor@clinic.com" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} maxLength={limits.email} />
+      <Field label="Phone (optional)" value={phone} onChangeText={change('phone', (value) => setPhone(sanitizePhoneInput(value)))} error={fieldErrors.phone} hint="Include the country code, e.g. +94 77 123 4567." placeholder="+94 77 123 4567" keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" maxLength={limits.phone} />
+      <Field label="About (optional)" value={description} onChangeText={change('description', setDescription)} error={fieldErrors.description} hint={`${description.trim().length}/${limits.description} characters`} placeholder="Short professional description" multiline maxLength={limits.description} />
       <Pressable onPress={() => void chooseImage()} style={styles.photoButton}>
         {image ? <Image source={{ uri: image.uri }} style={styles.preview} contentFit="cover" /> : doctor?.imageUrl ? <Image source={{ uri: imageUrl(doctor.imageUrl) }} style={styles.preview} contentFit="cover" /> : null}
         <Text style={styles.photoText}>{image || doctor?.imageUrl ? 'Choose a different photo' : 'Choose doctor photo'}</Text>
       </Pressable>
-      <Text style={styles.photoHint}>JPG, PNG, or WebP. Maximum 3 MB.</Text>
+      <Text style={fieldErrors.image ? styles.photoError : styles.photoHint}>{fieldErrors.image || 'JPG, PNG, or WebP. Maximum 3 MB.'}</Text>
       <Action title={editing ? 'Save doctor' : 'Create doctor'} onPress={() => void submit()} busy={busy} />
     </Page>
   );
@@ -91,4 +119,5 @@ const styles = StyleSheet.create({
   preview: { width: 52, height: 52, borderRadius: 6, backgroundColor: colors.mint },
   photoText: { color: colors.tealDeep, fontWeight: '800' },
   photoHint: { color: colors.muted, fontSize: 12, marginTop: -12 },
+  photoError: { color: colors.coral, fontSize: 12, marginTop: -12 },
 });
