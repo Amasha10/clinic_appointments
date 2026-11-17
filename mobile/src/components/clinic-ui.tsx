@@ -12,8 +12,12 @@ export function Heading({ eyebrow, title, detail }: { eyebrow?: string; title: s
   return <View style={styles.heading}>{eyebrow ? <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}<Text style={styles.title}>{title}</Text>{detail ? <Text style={styles.detail}>{detail}</Text> : null}</View>;
 }
 
-export function Field({ label, style, ...props }: TextInputProps & { label: string }) {
-  return <View style={styles.fieldGroup}><Text style={styles.label}>{label}</Text><TextInput placeholderTextColor={colors.muted} style={[styles.input, props.multiline && styles.multiline, style]} {...props} /></View>;
+export function Field({ label, error, hint, style, ...props }: TextInputProps & { label: string; error?: string; hint?: string }) {
+  return <View style={styles.fieldGroup}>
+    <Text style={styles.label}>{label}</Text>
+    <TextInput placeholderTextColor={colors.muted} accessibilityLabel={label} accessibilityHint={error || hint} style={[styles.input, props.multiline && styles.multiline, error ? styles.inputError : null, style]} {...props} />
+    {error ? <Text style={styles.fieldError} accessibilityLiveRegion="polite">{error}</Text> : hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
+  </View>;
 }
 
 export function Action({ title, onPress, busy = false, disabled = false, kind = 'primary' }: {
@@ -41,6 +45,9 @@ const styles = StyleSheet.create({
   label: { color: colors.ink, fontSize: 13, fontWeight: '700' },
   input: { minHeight: 50, borderWidth: 1, borderColor: colors.line, borderRadius: 8, paddingHorizontal: 14, color: colors.ink, backgroundColor: colors.surface, fontSize: 15 },
   multiline: { minHeight: 100, paddingTop: 13, textAlignVertical: 'top' },
+  inputError: { borderColor: colors.coral },
+  fieldError: { color: colors.coral, fontSize: 12, lineHeight: 17 },
+  fieldHint: { color: colors.muted, fontSize: 12, lineHeight: 17 },
   action: { minHeight: 48, paddingHorizontal: 17, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   primary: { backgroundColor: colors.teal },
   secondary: { backgroundColor: colors.mint },

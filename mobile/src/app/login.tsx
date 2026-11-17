@@ -5,20 +5,38 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Action, Field, Heading, Notice, Page } from '@/components/clinic-ui';
 import { useAuth } from '@/context/AuthContext';
 import { colors } from '@/lib/theme';
+import { compactErrors, hasErrors, limits, validateEmail, type FieldErrors } from '@/lib/validation';
+
+type LoginField = 'email' | 'password';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors<LoginField>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
+  function change(field: LoginField, setter: (value: string) => void) {
+    return (value: string) => {
+      setter(value);
+      if (fieldErrors[field]) setFieldErrors((current) => ({ ...current, [field]: '' }));
+    };
+  }
+
   async function submit() {
     setError('');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || !password) return setError('Enter a valid email and your password.');
+    // Only presence/format here: strength rules belong to registration, not sign-in.
+    const errors = compactErrors<LoginField>({
+      email: validateEmail(email),
+      password: password ? '' : 'Password is required.',
+    });
+    setFieldErrors(errors);
+    if (hasErrors(errors)) return;
+
     setBusy(true);
     try {
-      await signIn(email.trim(), password);
+      await signIn(email.trim().toLowerCase(), password);
       router.replace('/(tabs)');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not sign in.');
@@ -31,8 +49,8 @@ export default function LoginScreen() {
     <View style={styles.mark}><Text style={styles.markText}>C</Text></View>
     <Heading eyebrow="Clinic Connect" title="Welcome back" detail="Sign in to find a doctor or manage your visits." />
     {error ? <Notice>{error}</Notice> : null}
-    <Field label="Email address" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-    <Field label="Password" value={password} onChangeText={setPassword} placeholder="At least 8 characters" secureTextEntry autoComplete="password" />
+    <Field label="Email address" value={email} onChangeText={change('email', setEmail)} error={fieldErrors.email} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" maxLength={limits.email} />
+    <Field label="Password" value={password} onChangeText={change('password', setPassword)} error={fieldErrors.password} placeholder="At least 8 characters" secureTextEntry autoComplete="password" maxLength={limits.passwordMax} />
     <Action title="Sign in" onPress={() => void submit()} busy={busy} />
     <Text style={styles.switchText}>New to Clinic Connect? <Link href="/register" style={styles.link}>Create an account</Link></Text>
   </Page>;
