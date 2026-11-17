@@ -78,7 +78,7 @@ export default function DoctorFormScreen() {
       <Field label="Specialty" value={specialty} onChangeText={setSpecialty} placeholder="Cardiology" />
       <Field label="Email" value={email} onChangeText={setEmail} placeholder="doctor@clinic.com" keyboardType="email-address" autoCapitalize="none" />
       <Field label="Phone" value={phone} onChangeText={setPhone} placeholder="Contact number" keyboardType="phone-pad" />
-      <Field label="Secondary Phone" value={secondaryPhone} onChangeText={setSecondaryPhone} placeholder="Secondary contact number" keyboardType="phone-pad" />
+      <Field label="Secondary Phone" value={secondaryPhone} onChangeText={setSecondaryPhone} placeholder="Secondary land number" keyboardType="phone-pad" />
       <Field label="About" value={description} onChangeText={setDescription} placeholder="Short professional description" multiline />
       <Pressable onPress={() => void chooseImage()} style={styles.photoButton}>
         {image ? <Image source={{ uri: image.uri }} style={styles.preview} contentFit="cover" /> : doctor?.imageUrl ? <Image source={{ uri: imageUrl(doctor.imageUrl) }} style={styles.preview} contentFit="cover" /> : null}
